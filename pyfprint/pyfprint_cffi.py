@@ -95,5 +95,4 @@ void fp_img_free(struct fp_img *img);
 
 """)
 
-lib_path = [f for f in site.getsitepackages() if "site-packages" in f][0]
-C = ffi.dlopen("%s\\pyfprint\\libfprint-0.dll" % lib_path)
+C = ffi.dlopen("fprint")
