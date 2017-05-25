@@ -228,11 +228,8 @@ class Device:
 
             img = Image(img[0])
 
-            if r == C.FP_ENROLL_COMPLETE:
-                _dbg("enroll complete")
-                return Fprint(data_ptr=fprint[0]), img
-
             messages = {
+                C.FP_ENROLL_COMPLETE: "COMPLETE",
                 C.FP_ENROLL_FAIL: "FAIL",
                 C.FP_ENROLL_PASS: "PASS",
                 C.FP_ENROLL_RETRY: "RETRY",
@@ -240,14 +237,28 @@ class Device:
                 C.FP_ENROLL_RETRY_CENTER_FINGER: "RETRY_CENTER",
                 C.FP_ENROLL_RETRY_REMOVE_FINGER: "RETRY_REMOVE",
             }
-            _dbg("enroll " + messages[r])
 
-            # Workaround my uru4000 hangs after fp_enroll_finger_img returns RETRY
-            if r>=C.FP_ENROLL_RETRY and reopen_on_retry:
-                self.close()
-                self.open()
+            if r == C.FP_ENROLL_COMPLETE:
+                _dbg("enroll complete")
+                return Fprint(data_ptr=fprint[0]), img, messages[r]
+            elif r == C.FP_ENROLL_PASS:
+                _dbg("enroll passed")
+                return Fprint(data_ptr=fprint[0]), img, messages[r]
+            elif r == C.FP_ENROLL_FAIL or \
+                 r == C.FP_ENROLL_RETRY or \
+                 r == C.FP_ENROLL_RETRY_TOO_SHORT or \
+                 r == C.FP_ENROLL_RETRY_CENTER_FINGER or \
+                 r == C.FP_ENROLL_RETRY_REMOVE_FINGER:
+                _dbg("enroll issue: %s" % messages[r])
 
-        return None, img
+                # Workaround my uru4000 hangs after fp_enroll_finger_img returns RETRY
+                if r>=C.FP_ENROLL_RETRY and reopen_on_retry:
+                    self.close()
+                    self.open()
+
+                return None, img, messages[r]
+
+        return None, img, r
 
     def verify_finger(self, fprint):
         """
