@@ -1,3 +1,4 @@
+import site
 from cffi import FFI
 ffi = FFI()
 
@@ -94,4 +95,5 @@ void fp_img_free(struct fp_img *img);
 
 """)
 
-C = ffi.dlopen('fprint')
+lib_path = [f for f in site.getsitepackages() if "site-packages" in f][0]
+C = ffi.dlopen("%s\\pyfprint\\libfprint-0.dll" % lib_path)

@@ -415,12 +415,6 @@ class Image:
         data=C.fp_img_get_data(self._img)
         return ffi.string(data)[:-1] if data else ""
 
-    def rgb_data(self):
-        """
-        Return a string containing three bytes per pixel, representing a gray RGB image.
-        """
-        return C.pyfp_img_get_rgb_data(self._img)
-
     def save_to_file(self, filename):
         """Save the image as a pgm file."""
         r = C.fp_img_save_to_file(self._img, filename.encode())

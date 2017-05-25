@@ -7,20 +7,27 @@ This is a python module with [CFFI](https://cffi.readthedocs.org/en/latest/) bin
 
 **warning:** i've cut off some things from the [original](https://github.com/xantares/pyfprint) [SWIG](https://github.com/swig/swig) bindings
 
-usage
+Compiling
+---------
+```
+	1. You need MSYS2 with gcc, g++ toolchains
+	2. You also need Python 2.7 for Windows
+	3. python setup.py install
+```
+
+Usage
 -----
+```
+	1. add <python site-packages dir>/pyfprint/ to PATH
+	2. run python and import pyfprint
+	3. example invocation:
+		
+		REM start.bat
+		SET PATH=%PATH%;<python site-packages dir>/pyfprint
+		python -c "import pyfprint"
 
-	mkdir venv
-	. venv/bin/activate
-	pip install .
-	# hack hack hack
+		REM if this script doesn't yield an error, you should be
+		REM good to go
+```
 
-story
------
-
-It's forked from [@luksan](https://github.com/luksan) [original work](https://github.com/luksan/pyfprint),
-which was then improved by [@xantares](https://github.com/xantares) [here](https://github.com/xantares/pyfprint) with Python 3 support.
-
-The original SWIG version had issues with surrogate strings on modern python versions ([an issue has been filed](https://github.com/swig/swig/issues/222)), and I failed in working around it *so bad*.
-
-Reimplementing just the needed stuff using CFFI (*and possibly having broken everything else*) turned out to be a great idea :)
+P/S: Please open an issue if this does not work for you. 
