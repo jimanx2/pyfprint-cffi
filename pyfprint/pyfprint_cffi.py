@@ -39,6 +39,12 @@ enum fp_verify_result {
 	FP_VERIFY_RETRY_REMOVE_FINGER = FP_ENROLL_RETRY_REMOVE_FINGER,
 };
 
+enum fp_finger { 
+  LEFT_THUMB = 1, LEFT_INDEX, LEFT_MIDDLE, LEFT_RING, 
+  LEFT_LITTLE, RIGHT_THUMB, RIGHT_INDEX, RIGHT_MIDDLE, 
+  RIGHT_RING, RIGHT_LITTLE 
+};
+
 int fp_init(void);
 void fp_exit(void);
 void fp_set_debug(int level);
