@@ -5,9 +5,8 @@ try:
     dev = pyfprint.discover_devices()[0]
     dev.open()
 
-    dev.identify_finger_async([])
+    dev.identify_finger([])
     time.sleep(3)
-    dev.devstate(pyfprint.DEV_STATE_ERROR)
     dev.stop_identify_finger_async()
 except Exception as e:
     print e

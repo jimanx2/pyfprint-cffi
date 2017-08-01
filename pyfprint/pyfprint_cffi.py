@@ -39,6 +39,30 @@ enum fp_verify_result {
 	FP_VERIFY_RETRY_REMOVE_FINGER = FP_ENROLL_RETRY_REMOVE_FINGER,
 };
 
+enum fp_dev_state {
+	DEV_STATE_INITIAL = 0,
+	DEV_STATE_ERROR,
+	DEV_STATE_INITIALIZING,
+	DEV_STATE_INITIALIZED,
+	DEV_STATE_DEINITIALIZING,
+	DEV_STATE_DEINITIALIZED,
+	DEV_STATE_ENROLL_STARTING,
+	DEV_STATE_ENROLLING,
+	DEV_STATE_ENROLL_STOPPING,
+	DEV_STATE_VERIFY_STARTING,
+	DEV_STATE_VERIFYING,
+	DEV_STATE_VERIFY_DONE,
+	DEV_STATE_VERIFY_STOPPING,
+	DEV_STATE_IDENTIFY_STARTING,
+	DEV_STATE_IDENTIFYING,
+	DEV_STATE_IDENTIFY_DONE,
+	DEV_STATE_IDENTIFY_STOPPING,
+	DEV_STATE_CAPTURE_STARTING,
+	DEV_STATE_CAPTURING,
+	DEV_STATE_CAPTURE_DONE,
+	DEV_STATE_CAPTURE_STOPPING,
+};
+
 enum fp_finger { 
   LEFT_THUMB = 1, LEFT_INDEX, LEFT_MIDDLE, LEFT_RING, 
   LEFT_LITTLE, RIGHT_THUMB, RIGHT_INDEX, RIGHT_MIDDLE, 
@@ -48,6 +72,16 @@ enum fp_finger {
 int fp_init(void);
 void fp_exit(void);
 void fp_set_debug(int level);
+
+struct timeval {
+  long tv_sec, tv_usec;
+};
+
+struct sync_capture_data {
+  bool populated;
+  int result;
+  struct fp_img *img;
+};
 
 struct fp_dscv_dev **fp_discover_devs(void);
 void fp_dscv_devs_free(struct fp_dscv_dev **devs);
@@ -98,7 +132,33 @@ int fp_img_get_height(struct fp_img *img);
 int fp_img_get_width(struct fp_img *img);
 unsigned char *fp_img_get_data(struct fp_img *img);
 void fp_img_free(struct fp_img *img);
+int fp_handle_events(void);
+int fp_handle_events_timeout(struct timeval *timeout);
 
+typedef void (*fp_identify_stop_cb)(struct fp_dev *dev, void *user_data);
+int fp_async_identify_stop(struct fp_dev *dev, fp_identify_stop_cb callback,
+	void *user_data);
+
+typedef void (*fp_identify_cb)(struct fp_dev *dev, int result,
+	size_t match_offset, struct fp_img *img, void *user_data);
+int fp_async_identify_start(struct fp_dev *dev, struct fp_print_data **gallery,
+	fp_identify_cb callback, void *user_data);
+
+struct fp_dev {
+	uint32_t devtype;
+	void *priv;
+
+	int nr_enroll_stages;
+
+	/* read-only to drivers */
+	struct fp_print_data *verify_data;
+
+	/* drivers should not mess with any of the below */
+	enum fp_dev_state state;
+	int __enroll_stage;
+	int unconditional_capture;
+	int stopped;
+};
 """)
 
 C = ffi.dlopen("fprint")
