@@ -57,8 +57,6 @@ RIGHT_RING=C.RIGHT_RING
 RIGHT_LITTLE=C.RIGHT_LITTLE
 
 _init_ok = False
-_poll_thread = None
-_polling = False
 _user_data = ffi.new("void **")
 
 class FprintException(Exception):
@@ -76,47 +74,17 @@ def init():
     if _init_ok: return
     fp_init()
 
-def poll_fp():
-    global _polling
-    print _polling
-    while(_polling):
-        C.fp_handle_events()
-    print _polling
-
-
-@ffi.callback("void (struct fp_dev*, int, struct fp_img*, void*)")
-def _python_capture_cb(dev, result, fp_img, user_data):
-    print "capture complete"
-
-@ffi.callback("void (struct fp_dev *, int, \
-    size_t, struct fp_img *, void *)")
-def _python_identify_finger_cb(dev, result, offset, fp_img, user_data):
-    print "identify complete"
-
-@ffi.callback("void (struct fp_dev*, void*)")
-def _python_stop_capture_cb(dev, user_data):
-    print "stop_capture callback"
-
-@ffi.callback("void (struct fp_dev *, void *)")
-def _python_stop_identify_cb(dev, stopped):
-    print "stop_identify callback"
-
-def fp_init():
+def fp_init(async=False):
     """Deprecated, use init() instead"""
     global _init_ok, _polling
     _init_ok = (C.fp_init() == 0)
     if not _init_ok:
         raise FprintException("fprint initialization failed.")
-    else:
-        _polling = True
-        _poll_thread = threading.Thread(target=poll_fp, args=())
-        _poll_thread.start()
 
 def exit():
     """pyfprint can't be used after this is called."""
     global _init_ok, _polling
     if _init_ok:
-        _polling = False
         fp_exit()
 
 def fp_exit():
@@ -231,26 +199,6 @@ class Device:
         if self.dev:
             return C.fp_dev_get_img_height(self.dev)
         raise FprintIOException("Device not open")
-
-    def stop_identify_finger_async(self):
-        C.fp_async_identify_stop(self.dev, _python_stop_identify_cb, _user_data)
-
-    def identify_finger_async(self, fprints):
-        if not self.dev:
-            raise FprintIOException("Device not open")
-
-        for x in fprints:
-            if not self.is_compatible(x):
-                raise FprintException("Can't verify uncompatible print")
-
-        print_gallery = ffi.new("struct fp_print_data * [%d]" % (len(fprints)+1))
-
-        for i, x in enumerate(fprints):
-            print_gallery[i] = x._get_print_data_ptr()
-
-        # offset = ffi.new("size_t *")
-        # img = ffi.new("struct fp_img **")
-        r = C.fp_async_identify_start(self.dev, print_gallery, _python_identify_finger_cb, _user_data)
 
     def capture_image(self, wait_for_finger):
         """
