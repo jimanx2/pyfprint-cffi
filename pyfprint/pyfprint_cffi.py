@@ -1,4 +1,4 @@
-import site
+import site, sys, os
 from cffi import FFI
 ffi = FFI()
 
@@ -102,4 +102,6 @@ void fp_img_free(struct fp_img *img);
 """)
 
 lib_path = [f for f in site.getsitepackages() if "site-packages" in f][0]
-C = ffi.dlopen("%s\\pyfprint\\libfprint-0.dll" % lib_path)
+sys.path.insert(0, "%s\\pyfprint" % lib_path)
+os.environ["PATH"] = "%s;%s\\pyfprint" % (os.environ["PATH"], lib_path)
+C = ffi.dlopen("%s\\pyfprint\\msys-fprint-0.dll" % lib_path)
